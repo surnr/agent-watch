@@ -1,0 +1,78 @@
+{
+	"name": "agent-watch",
+	"version": "1.1.2",
+	"description": "CLI tool for keeping AI agent configuration files in sync with your codebase",
+	"type": "module",
+	"bin": {
+		"agent-watch": "./dist/cli.js"
+	},
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"scripts": {
+		"build": "tsdown && tsc -p tsconfig.build.json && cp dist/index.d.ts dist/index.d.cts",
+		"prepublishOnly": "pnpm run build && pnpm run test:exports",
+		"check": "biome check .",
+		"check:fix": "biome check --fix .",
+		"test": "pnpm run test:ci",
+		"test:ci": "pnpm run check && pnpm run test:types && pnpm run test:unit && pnpm run test:publint",
+		"test:unit": "vitest run --passWithNoTests",
+		"test:cov": "vitest run --coverage",
+		"test:types": "tsc",
+		"test:publint": "publint --strict",
+		"test:exports": "attw --pack .",
+		"test:unused": "knip",
+		"changeset": "changeset",
+		"release": "changeset publish",
+		"version": "changeset version"
+	},
+	"files": ["dist"],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/surnr/agent-watch.git"
+	},
+	"bugs": {
+		"url": "https://github.com/surnr/agent-watch/issues"
+	},
+	"homepage": "https://github.com/surnr/agent-watch#readme",
+	"publishConfig": {
+		"provenance": true
+	},
+	"packageManager": "pnpm@10.8.0",
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"dependencies": {
+		"@inquirer/prompts": "^7.5.0",
+		"commander": "^13.1.0",
+		"picocolors": "^1.1.1"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.17.4",
+		"@biomejs/biome": "^1.9.4",
+		"@changesets/cli": "^2.29.0",
+		"@types/node": "22.14.1",
+		"@vitest/coverage-v8": "^3.1.1",
+		"knip": "^5.64.2",
+		"lefthook": "^1.11.10",
+		"publint": "^0.3.14",
+		"tsdown": "^0.15.6",
+		"typescript": "^5.8.3",
+		"vitest": "^3.1.1"
+	}
+}
