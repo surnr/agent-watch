@@ -150,13 +150,12 @@ export function createMissingAgentFiles(
 		return
 	}
 
-	logger.step(`Creating ${missingFiles.length} missing file(s)...`)
-
 	for (const filePath of missingFiles) {
 		const agentFile = KNOWN_AGENT_FILES.find((f) => f.path === filePath)
 		const label = agentFile?.label ?? filePath
 
 		try {
+			logger.step(`Creating ${label}...`)
 			if (filePath === ".github/copilot-instructions.md") {
 				execSync("copilot init", {
 					cwd: projectRoot,
