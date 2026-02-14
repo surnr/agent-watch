@@ -138,3 +138,6 @@ dist
 
 # MacOS
 .DS_Store
+
+# agent-watch
+.agent-watch
