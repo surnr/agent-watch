@@ -136,8 +136,5 @@ dist
 # Claude Code
 .claude/
 
-# agent-watch config
-.agent-watch.json
-
 # MacOS
 .DS_Store
