@@ -16,7 +16,6 @@ export const KNOWN_AGENT_FILES: AgentFilePattern[] = [
 	},
 	{ path: "copilot-instructions.md", label: "copilot-instructions.md (GitHub Copilot)", agent: "GitHub Copilot" },
 	{ path: "AGENTS.md", label: "AGENTS.md (Generic)", agent: "Generic" },
-	{ path: "agents.md", label: "agents.md (Generic)", agent: "Generic" },
 	{ path: ".cursorrules", label: ".cursorrules (Cursor)", agent: "Cursor" },
 	{ path: ".cursor/rules", label: ".cursor/rules (Cursor)", agent: "Cursor" },
 	{ path: ".windsurfrules", label: ".windsurfrules (Windsurf)", agent: "Windsurf" },
@@ -29,3 +28,6 @@ export const SUPPORTED_HOOKS = ["commit", "push"] as const
 export type GitHookTrigger = (typeof SUPPORTED_HOOKS)[number]
 
 export const SUPPORTED_AI_AGENTS = [{ value: "github-copilot-cli", name: "GitHub Copilot CLI" }] as const
+
+// UI Configuration
+export const FILE_SELECTION_PAGE_SIZE = 10 // Static scroll limit for file selection

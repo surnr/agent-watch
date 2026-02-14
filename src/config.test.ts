@@ -50,7 +50,8 @@ describe("config", () => {
 			const config = createDefaultConfig()
 			expect(config.version).toBe(1)
 			expect(config.agentFiles).toEqual([])
-			expect(config.useGitContext).toBe(true)
+			expect(config.watchFileChanges).toBe(true)
+			expect(config.includeChatSession).toBe(true)
 			expect(config.hookTrigger).toBe("commit")
 			expect(config.agents).toEqual([])
 		})
@@ -60,10 +61,13 @@ describe("config", () => {
 				agentFiles: ["CLAUDE.md", "AGENTS.md"],
 				hookTrigger: "push",
 				agents: ["github-copilot-cli"],
+				watchFileChanges: false,
 			})
 			expect(config.agentFiles).toEqual(["CLAUDE.md", "AGENTS.md"])
 			expect(config.hookTrigger).toBe("push")
 			expect(config.agents).toEqual(["github-copilot-cli"])
+			expect(config.watchFileChanges).toBe(false)
+			expect(config.includeChatSession).toBe(true)
 			expect(config.version).toBe(1)
 		})
 	})

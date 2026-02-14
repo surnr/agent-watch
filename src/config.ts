@@ -7,8 +7,12 @@ export interface AgentWatchConfig {
 	version: 1
 	/** Relative paths to the agent files being managed */
 	agentFiles: string[]
-	/** Whether to use git commit messages and chat sessions for context */
-	useGitContext: boolean
+	/** Whether to use git commit messages and chat sessions for context (legacy) */
+	useGitContext?: boolean
+	/** Whether to watch for file changes */
+	watchFileChanges: boolean
+	/** Whether to include chat session context */
+	includeChatSession: boolean
 	/** Which git hook triggers the update */
 	hookTrigger: GitHookTrigger
 	/** Which AI agent integrations to configure */
@@ -47,7 +51,8 @@ export function createDefaultConfig(overrides: Partial<AgentWatchConfig> = {}): 
 	return {
 		version: 1,
 		agentFiles: [],
-		useGitContext: true,
+		watchFileChanges: true,
+		includeChatSession: true,
 		hookTrigger: "commit",
 		agents: [],
 		...overrides,
