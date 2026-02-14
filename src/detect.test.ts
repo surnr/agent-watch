@@ -30,10 +30,11 @@ describe("detectAgentFiles", () => {
 		expect(claude?.exists).toBe(true)
 	})
 
-	it("should detect .cursorrules when it exists", () => {
-		writeFileSync(join(tempDir, ".cursorrules"), "rules")
+	it("should detect .cursor/rules when it exists", () => {
+		mkdirSync(join(tempDir, ".cursor"), { recursive: true })
+		writeFileSync(join(tempDir, ".cursor", "rules"), "rules")
 		const results = detectAgentFiles(tempDir)
-		const cursor = results.find((r) => r.pattern.path === ".cursorrules")
+		const cursor = results.find((r) => r.pattern.path === ".cursor/rules")
 		expect(cursor).toBeDefined()
 		expect(cursor?.exists).toBe(true)
 	})
@@ -66,11 +67,12 @@ describe("getExistingAgentFiles", () => {
 
 	it("should return only existing files", () => {
 		writeFileSync(join(tempDir, "CLAUDE.md"), "")
-		writeFileSync(join(tempDir, ".cursorrules"), "")
+		mkdirSync(join(tempDir, ".cursor"), { recursive: true })
+		writeFileSync(join(tempDir, ".cursor", "rules"), "")
 		const existing = getExistingAgentFiles(tempDir)
 		expect(existing).toHaveLength(2)
 		const paths = existing.map((f) => f.pattern.path)
 		expect(paths).toContain("CLAUDE.md")
-		expect(paths).toContain(".cursorrules")
+		expect(paths).toContain(".cursor/rules")
 	})
 })

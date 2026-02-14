@@ -36,11 +36,11 @@ describe("config", () => {
 
 	describe("saveConfig", () => {
 		it("should save config as formatted JSON", () => {
-			const config = createDefaultConfig({ agentFiles: [".cursorrules"] })
+			const config = createDefaultConfig({ agentFiles: [".cursor/rules"] })
 			saveConfig(tempDir, config)
 			const raw = readFileSync(join(tempDir, ".agent-watch.json"), "utf-8")
 			expect(raw).toContain('"version": 1')
-			expect(raw).toContain('".cursorrules"')
+			expect(raw).toContain('".cursor/rules"')
 			expect(raw.endsWith("\n")).toBe(true)
 		})
 	})

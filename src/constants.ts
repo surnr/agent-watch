@@ -8,15 +8,13 @@ export interface AgentFilePattern {
 }
 
 export const KNOWN_AGENT_FILES: AgentFilePattern[] = [
+	{ path: "AGENTS.md", label: "AGENTS.md (Recommended)", agent: "Generic" },
 	{ path: "CLAUDE.md", label: "CLAUDE.md (Claude Code)", agent: "Claude Code" },
 	{
 		path: ".github/copilot-instructions.md",
 		label: ".github/copilot-instructions.md (GitHub Copilot)",
 		agent: "GitHub Copilot",
 	},
-	{ path: "copilot-instructions.md", label: "copilot-instructions.md (GitHub Copilot)", agent: "GitHub Copilot" },
-	{ path: "AGENTS.md", label: "AGENTS.md (Generic)", agent: "Generic" },
-	{ path: ".cursorrules", label: ".cursorrules (Cursor)", agent: "Cursor" },
 	{ path: ".cursor/rules", label: ".cursor/rules (Cursor)", agent: "Cursor" },
 	{ path: ".windsurfrules", label: ".windsurfrules (Windsurf)", agent: "Windsurf" },
 	{ path: ".clinerules", label: ".clinerules (Cline)", agent: "Cline" },
