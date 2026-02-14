@@ -2,6 +2,8 @@ import { execSync } from "node:child_process"
 import { existsSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
+import { KNOWN_AGENT_FILES } from "../constants.js"
+import type { AgentFileInfo } from "../detect.js"
 import { logger } from "./logger.js"
 
 interface CopilotStatus {
@@ -137,4 +139,55 @@ export async function setupGithubCopilotCli(): Promise<boolean> {
 export function verifyCopilotSetup(): boolean {
 	const status = checkCopilotStatus()
 	return status.installed && status.authenticated
+}
+
+/**
+ * Create missing agent files using Copilot CLI.
+ * For .github/copilot-instructions.md, uses `copilot init`.
+ * For other files, uses `copilot -p` to generate content based on the codebase.
+ */
+export function createMissingAgentFiles(
+	projectRoot: string,
+	selectedFiles: string[],
+	detectedFiles: AgentFileInfo[]
+): void {
+	const missingFiles = selectedFiles.filter((filePath) => {
+		const detected = detectedFiles.find((d) => d.pattern.path === filePath)
+		return !detected?.exists
+	})
+
+	if (missingFiles.length === 0) {
+		return
+	}
+
+	logger.step(`Creating ${missingFiles.length} missing agent file(s) using Copilot CLI...`)
+
+	for (const filePath of missingFiles) {
+		const agentFile = KNOWN_AGENT_FILES.find((f) => f.path === filePath)
+		const label = agentFile?.label ?? filePath
+
+		try {
+			if (filePath === ".github/copilot-instructions.md") {
+				logger.info(`  Creating ${label} via copilot init...`)
+				execSync("copilot init", {
+					cwd: projectRoot,
+					stdio: "pipe",
+					timeout: 120_000,
+				})
+			} else {
+				logger.info(`  Creating ${label} via copilot...`)
+				execSync(
+					`copilot -p "Create a ${filePath} file for this project. Analyze the codebase to understand the project structure, tech stack, and conventions. Write the file directly." --allow-all-tools -s`,
+					{
+						cwd: projectRoot,
+						stdio: "pipe",
+						timeout: 120_000,
+					}
+				)
+			}
+			logger.success(`  Created ${label}`)
+		} catch (error) {
+			logger.warn(`  Failed to create ${label}: ${error instanceof Error ? error.message : String(error)}`)
+		}
+	}
 }

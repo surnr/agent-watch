@@ -9,7 +9,7 @@ import {
 } from "../constants.js"
 import { detectAgentFiles } from "../detect.js"
 import { installGitHook } from "../hooks.js"
-import { setupGithubCopilotCli } from "../utils/copilot.js"
+import { createMissingAgentFiles, setupGithubCopilotCli } from "../utils/copilot.js"
 import { findGitRoot } from "../utils/git.js"
 import { logger } from "../utils/logger.js"
 
@@ -77,6 +77,9 @@ export async function initCommand(): Promise<void> {
 		return
 	}
 
+	// 4b. Create missing agent files using Copilot CLI
+	createMissingAgentFiles(projectRoot, selectedFiles, detectedFiles)
+
 	// 5. Ask about context options
 	logger.section("Context Options")
 	logger.info("Select what context to include when updating agent files:")
@@ -91,7 +94,7 @@ export async function initCommand(): Promise<void> {
 				checked: true,
 			},
 			{
-				name: "  Chat session (commit messages, conversation context)",
+				name: "  Chat sessions (Copilot conversation context)",
 				value: "includeChatSession",
 				checked: true,
 			},

@@ -31,3 +31,6 @@ export const SUPPORTED_AI_AGENTS = [{ value: "github-copilot-cli", name: "GitHub
 
 // UI Configuration
 export const FILE_SELECTION_PAGE_SIZE = 10 // Static scroll limit for file selection
+
+// Session tracking
+export const SESSIONS_STATE_FILE = ".agent-watch-sessions.json"
