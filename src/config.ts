@@ -1,6 +1,6 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { CONFIG_FILE_NAME, type GitHookTrigger } from "./constants.js"
+import { AGENT_WATCH_DIR, CONFIG_FILE_NAME, type GitHookTrigger } from "./constants.js"
 
 export interface AgentWatchConfig {
 	/** Version of the config schema */
@@ -24,7 +24,7 @@ export interface AgentWatchConfig {
  * Returns null if no config file exists or is invalid.
  */
 export function loadConfig(projectRoot: string): AgentWatchConfig | null {
-	const configPath = join(projectRoot, CONFIG_FILE_NAME)
+	const configPath = join(projectRoot, AGENT_WATCH_DIR, CONFIG_FILE_NAME)
 	if (!existsSync(configPath)) {
 		return null
 	}
@@ -40,7 +40,14 @@ export function loadConfig(projectRoot: string): AgentWatchConfig | null {
  * Save the agent-watch configuration to the project root.
  */
 export function saveConfig(projectRoot: string, config: AgentWatchConfig): void {
-	const configPath = join(projectRoot, CONFIG_FILE_NAME)
+	const agentWatchDir = join(projectRoot, AGENT_WATCH_DIR)
+	const configPath = join(agentWatchDir, CONFIG_FILE_NAME)
+
+	// Ensure directory exists
+	if (!existsSync(agentWatchDir)) {
+		mkdirSync(agentWatchDir, { recursive: true })
+	}
+
 	writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf-8")
 }
 

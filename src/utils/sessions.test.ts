@@ -89,7 +89,7 @@ describe("sessions", () => {
 		const loaded = getProcessedSessionIds(projectRoot)
 		expect(loaded).toEqual(["one", "two"])
 
-		const raw = readFileSync(join(projectRoot, ".agent-watch-sessions.json"), "utf-8")
+		const raw = readFileSync(join(projectRoot, ".agent-watch", "sessions.json"), "utf-8")
 		expect(raw.endsWith("\n")).toBe(true)
 	})
 
@@ -167,7 +167,7 @@ describe("sessions", () => {
 		const result = processNewSessions(projectRoot)
 		expect(result).toBeNull()
 
-		const raw = readFileSync(join(projectRoot, ".agent-watch-sessions.json"), "utf-8")
+		const raw = readFileSync(join(projectRoot, ".agent-watch", "sessions.json"), "utf-8")
 		expect(raw).toContain("\"a\"")
 	})
 
@@ -189,7 +189,7 @@ describe("sessions", () => {
 		const result = processNewSessions(projectRoot)
 		expect(result).toBe("User: One\nAgent: Two")
 
-		const raw = readFileSync(join(projectRoot, ".agent-watch-sessions.json"), "utf-8")
+		const raw = readFileSync(join(projectRoot, ".agent-watch", "sessions.json"), "utf-8")
 		expect(raw).toContain("\"a\"")
 	})
 })

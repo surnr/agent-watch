@@ -1,8 +1,8 @@
 import { execSync } from "node:child_process"
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
-import { SESSIONS_STATE_FILE } from "../constants.js"
+import { AGENT_WATCH_DIR, SESSIONS_STATE_FILE } from "../constants.js"
 import { logger } from "./logger.js"
 
 export interface CopilotSession {
@@ -100,7 +100,7 @@ export function getCopilotSessions(projectRoot: string, limit = 5): CopilotSessi
  * Read the list of already-processed session IDs from the project state file.
  */
 export function getProcessedSessionIds(projectRoot: string): string[] {
-	const stateFile = join(projectRoot, SESSIONS_STATE_FILE)
+	const stateFile = join(projectRoot, AGENT_WATCH_DIR, SESSIONS_STATE_FILE)
 	if (!existsSync(stateFile)) return []
 
 	try {
@@ -116,7 +116,14 @@ export function getProcessedSessionIds(projectRoot: string): string[] {
  * Save the list of processed session IDs to the project state file.
  */
 export function saveProcessedSessionIds(projectRoot: string, sessionIds: string[]): void {
-	const stateFile = join(projectRoot, SESSIONS_STATE_FILE)
+	const agentWatchDir = join(projectRoot, AGENT_WATCH_DIR)
+	const stateFile = join(agentWatchDir, SESSIONS_STATE_FILE)
+
+	// Ensure directory exists
+	if (!existsSync(agentWatchDir)) {
+		mkdirSync(agentWatchDir, { recursive: true })
+	}
+
 	const content = JSON.stringify({ processedSessions: sessionIds }, null, 2)
 	writeFileSync(stateFile, `${content}\n`)
 }

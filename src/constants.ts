@@ -20,7 +20,10 @@ export const KNOWN_AGENT_FILES: AgentFilePattern[] = [
 	{ path: ".clinerules", label: ".clinerules (Cline)", agent: "Cline" },
 ]
 
-export const CONFIG_FILE_NAME = ".agent-watch.json"
+// agent-watch directory and files
+export const AGENT_WATCH_DIR = ".agent-watch"
+export const CONFIG_FILE_NAME = "config.json"
+export const SESSIONS_STATE_FILE = "sessions.json"
 
 export const SUPPORTED_HOOKS = ["commit", "push"] as const
 export type GitHookTrigger = (typeof SUPPORTED_HOOKS)[number]
@@ -29,6 +32,3 @@ export const SUPPORTED_AI_AGENTS = [{ value: "github-copilot-cli", name: "GitHub
 
 // UI Configuration
 export const FILE_SELECTION_PAGE_SIZE = 10 // Static scroll limit for file selection
-
-// Session tracking
-export const SESSIONS_STATE_FILE = ".agent-watch-sessions.json"

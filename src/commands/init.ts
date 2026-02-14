@@ -1,6 +1,7 @@
 import { checkbox, confirm, select } from "@inquirer/prompts"
 import { createDefaultConfig, loadConfig, saveConfig } from "../config.js"
 import {
+	AGENT_WATCH_DIR,
 	FILE_SELECTION_PAGE_SIZE,
 	type GitHookTrigger,
 	KNOWN_AGENT_FILES,
@@ -10,6 +11,7 @@ import { detectAgentFiles } from "../detect.js"
 import { installGitHook } from "../hooks.js"
 import { createMissingAgentFiles, setupGithubCopilotCli } from "../utils/copilot.js"
 import { findGitRoot } from "../utils/git.js"
+import { addToGitignore } from "../utils/gitignore.js"
 import { logger } from "../utils/logger.js"
 
 export async function initCommand(): Promise<void> {
@@ -128,6 +130,9 @@ export async function initCommand(): Promise<void> {
 	})
 
 	saveConfig(projectRoot, config)
+
+	// 9b. Add .agent-watch directory to .gitignore
+	addToGitignore(projectRoot, [AGENT_WATCH_DIR])
 
 	// 10. Install git hook
 	const hookResult = installGitHook(projectRoot, gitRoot, hookTrigger)

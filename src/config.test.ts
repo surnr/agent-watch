@@ -20,7 +20,10 @@ describe("config", () => {
 		})
 
 		it("should return null for invalid JSON", () => {
-			const configPath = join(tempDir, ".agent-watch.json")
+			const { mkdirSync } = require("node:fs") as typeof import("node:fs")
+		const agentWatchDir = join(tempDir, ".agent-watch")
+		mkdirSync(agentWatchDir, { recursive: true })
+		const configPath = join(agentWatchDir, "config.json")
 			const { writeFileSync } = require("node:fs") as typeof import("node:fs")
 			writeFileSync(configPath, "not valid json", "utf-8")
 			expect(loadConfig(tempDir)).toBeNull()
@@ -38,7 +41,7 @@ describe("config", () => {
 		it("should save config as formatted JSON", () => {
 			const config = createDefaultConfig({ agentFiles: [".cursor/rules"] })
 			saveConfig(tempDir, config)
-			const raw = readFileSync(join(tempDir, ".agent-watch.json"), "utf-8")
+			const raw = readFileSync(join(tempDir, ".agent-watch", "config.json"), "utf-8")
 			expect(raw).toContain('"version": 1')
 			expect(raw).toContain('".cursor/rules"')
 			expect(raw.endsWith("\n")).toBe(true)
