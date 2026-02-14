@@ -14,7 +14,7 @@ import { findGitRoot } from "../utils/git.js"
 import { logger } from "../utils/logger.js"
 
 export async function initCommand(): Promise<void> {
-	logger.banner("agent-watch init")
+	logger.asciiArt()
 
 	// 1. Check we are in a git repository
 	const cwd = process.cwd()
