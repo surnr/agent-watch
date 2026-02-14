@@ -1,7 +1,6 @@
 import { checkbox, confirm, select } from "@inquirer/prompts"
 import { createDefaultConfig, loadConfig, saveConfig } from "../config.js"
 import {
-	CONFIG_FILE_NAME,
 	FILE_SELECTION_PAGE_SIZE,
 	type GitHookTrigger,
 	KNOWN_AGENT_FILES,
@@ -41,21 +40,12 @@ export async function initCommand(): Promise<void> {
 	}
 
 	// 3. Detect existing agent files
-	logger.section("Agent Files")
-	logger.step("Scanning for agent configuration files...")
 	const detectedFiles = detectAgentFiles(projectRoot)
 	const existingFiles = detectedFiles.filter((f) => f.exists)
 
 	if (existingFiles.length > 0) {
-		logger.success(`Found ${existingFiles.length} existing agent file(s):`)
-		for (const file of existingFiles) {
-			logger.info(`  • ${file.pattern.path}`)
-		}
-	} else {
-		logger.info("No existing agent configuration files found.")
+		logger.success(`Found ${existingFiles.length} existing agent file(s)`)
 	}
-
-	logger.sectionEnd()
 
 	// 4. Ask which agent files to manage
 	const selectedFiles = await checkbox({
@@ -81,10 +71,6 @@ export async function initCommand(): Promise<void> {
 	createMissingAgentFiles(projectRoot, selectedFiles, detectedFiles)
 
 	// 5. Ask about context options
-	logger.section("Context Options")
-	logger.info("Select what context to include when updating agent files:")
-	logger.sectionEnd()
-
 	const contextOptions = await checkbox({
 		message: "What should agent-watch track?",
 		choices: [
@@ -105,7 +91,6 @@ export async function initCommand(): Promise<void> {
 	const includeChatSession = contextOptions.includes("includeChatSession")
 
 	// 6. Ask about hook trigger
-	logger.section("Git Hook Configuration")
 	const hookTrigger = await select<GitHookTrigger>({
 		message: "When should agent-watch trigger?",
 		choices: [
@@ -114,10 +99,8 @@ export async function initCommand(): Promise<void> {
 		],
 		default: "commit" as const,
 	})
-	logger.sectionEnd()
 
 	// 7. Ask which AI agents to configure
-	logger.section("AI Agent Integration")
 	const selectedAgents = await checkbox({
 		message: "Which AI agents would you like to configure?",
 		choices: SUPPORTED_AI_AGENTS.map((agent) => ({
@@ -126,18 +109,16 @@ export async function initCommand(): Promise<void> {
 			checked: true,
 		})),
 	})
-	logger.sectionEnd()
 
 	// 8. Setup GitHub Copilot CLI if selected
 	if (selectedAgents.includes("github-copilot-cli")) {
 		const setupSuccess = await setupGithubCopilotCli()
 		if (!setupSuccess) {
-			logger.warn("GitHub Copilot CLI setup was not completed. You can set it up later manually.")
+			logger.warn("Copilot CLI setup incomplete. You can set it up manually later.")
 		}
 	}
 
 	// 9. Build and save configuration
-	logger.section("Saving Configuration")
 	const config = createDefaultConfig({
 		agentFiles: selectedFiles,
 		watchFileChanges,
@@ -147,11 +128,8 @@ export async function initCommand(): Promise<void> {
 	})
 
 	saveConfig(projectRoot, config)
-	logger.success(`Configuration saved to ${CONFIG_FILE_NAME}`)
-	logger.sectionEnd()
 
 	// 10. Install git hook
-	logger.section("Setting up Git Hook")
 	const hookResult = installGitHook(projectRoot, gitRoot, hookTrigger)
 
 	if (hookResult.success) {
@@ -163,16 +141,10 @@ export async function initCommand(): Promise<void> {
 	} else {
 		logger.error(hookResult.message)
 	}
-	logger.sectionEnd()
 
 	// 11. Summary
 	logger.blank()
-	logger.title("🎉 Setup Complete!")
-	logger.info("Configuration summary:")
-	logger.info(`  📁 Agent files: ${selectedFiles.join(", ")}`)
-	logger.info(`  📝 Watch file changes: ${watchFileChanges ? "enabled" : "disabled"}`)
-	logger.info(`  💬 Include chat session: ${includeChatSession ? "enabled" : "disabled"}`)
-	logger.info(`  🔗 Hook trigger: ${hookTrigger}`)
-	logger.info(`  🤖 AI agents: ${selectedAgents.join(", ")}`)
+	logger.success("Setup complete!")
+	logger.info(`Files: ${selectedFiles.join(", ")} • Hook: ${hookTrigger} • Agents: ${selectedAgents.join(", ")}`)
 	logger.blank()
 }

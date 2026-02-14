@@ -102,16 +102,12 @@ async function authenticateCopilot(): Promise<boolean> {
  * Setup GitHub Copilot CLI - install and configure if needed
  */
 export async function setupGithubCopilotCli(): Promise<boolean> {
-	logger.title("GitHub Copilot CLI Setup")
-
 	const status = checkCopilotStatus()
 
 	// Check Copilot CLI installation
 	if (!status.installed) {
 		return await promptInstallCopilot()
 	}
-
-	logger.success(`GitHub Copilot CLI is installed (v${status.version ?? "unknown"})`)
 
 	// Check authentication
 	if (!status.authenticated) {
@@ -121,14 +117,8 @@ export async function setupGithubCopilotCli(): Promise<boolean> {
 			return false
 		}
 	} else {
-		logger.success(`GitHub Copilot CLI is authenticated as ${status.username}`)
+		logger.success(`Copilot CLI authenticated as ${status.username}`)
 	}
-
-	// Final verification
-	logger.blank()
-	logger.success("GitHub Copilot CLI is ready to use!")
-	logger.info("You can now use 'copilot' commands")
-	logger.blank()
 
 	return true
 }
@@ -160,7 +150,7 @@ export function createMissingAgentFiles(
 		return
 	}
 
-	logger.step(`Creating ${missingFiles.length} missing agent file(s) using Copilot CLI...`)
+	logger.step(`Creating ${missingFiles.length} missing file(s)...`)
 
 	for (const filePath of missingFiles) {
 		const agentFile = KNOWN_AGENT_FILES.find((f) => f.path === filePath)
@@ -168,14 +158,12 @@ export function createMissingAgentFiles(
 
 		try {
 			if (filePath === ".github/copilot-instructions.md") {
-				logger.info(`  Creating ${label} via copilot init...`)
 				execSync("copilot init", {
 					cwd: projectRoot,
 					stdio: "pipe",
 					timeout: 120_000,
 				})
 			} else {
-				logger.info(`  Creating ${label} via copilot...`)
 				execSync(
 					`copilot -p "Create a ${filePath} file for this project. Analyze the codebase to understand the project structure, tech stack, and conventions. Write the file directly." --allow-all-tools -s`,
 					{
@@ -185,9 +173,9 @@ export function createMissingAgentFiles(
 					}
 				)
 			}
-			logger.success(`  Created ${label}`)
-		} catch (error) {
-			logger.warn(`  Failed to create ${label}: ${error instanceof Error ? error.message : String(error)}`)
+			logger.success(`Created ${label}`)
+		} catch {
+			logger.warn(`Failed to create ${label}`)
 		}
 	}
 }
