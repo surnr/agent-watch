@@ -1,45 +1,58 @@
 import { execSync } from "node:child_process"
+import { existsSync, readFileSync } from "node:fs"
+import { homedir } from "node:os"
+import { join } from "node:path"
 import { logger } from "./logger.js"
 
 interface CopilotStatus {
-	ghInstalled: boolean
-	copilotInstalled: boolean
+	installed: boolean
 	authenticated: boolean
+	version?: string
+	username?: string
 }
 
+interface CopilotConfig {
+	last_logged_in_user?: { host: string; login: string }
+	logged_in_users?: Array<{ host: string; login: string }>
+}
+
+const COPILOT_CONFIG_DIR = join(homedir(), ".copilot")
+const COPILOT_CONFIG_FILE = join(COPILOT_CONFIG_DIR, "config.json")
+
 /**
- * Check if GitHub CLI (gh) is installed
+ * Check if the standalone GitHub Copilot CLI is installed
  */
-function isGhInstalled(): boolean {
+function isCopilotInstalled(): { installed: boolean; version?: string } {
 	try {
-		execSync("gh --version", { stdio: "pipe" })
-		return true
+		const output = execSync("copilot -v", { encoding: "utf-8", stdio: "pipe" })
+		const match = /(\d+\.\d+\.\d+)/.exec(output)
+		return { installed: true, version: match?.[1] }
 	} catch {
-		return false
+		return { installed: false }
 	}
 }
 
 /**
- * Check if GitHub Copilot CLI extension is installed
+ * Check if the user is authenticated with GitHub Copilot CLI
+ * by reading the config file at ~/.copilot/config.json
  */
-function isCopilotExtensionInstalled(): boolean {
+function getCopilotAuth(): { authenticated: boolean; username?: string } {
 	try {
-		const output = execSync("gh extension list", { encoding: "utf-8", stdio: "pipe" })
-		return output.includes("github/gh-copilot")
-	} catch {
-		return false
-	}
-}
+		if (!existsSync(COPILOT_CONFIG_FILE)) {
+			return { authenticated: false }
+		}
 
-/**
- * Check if GitHub CLI is authenticated
- */
-function isGhAuthenticated(): boolean {
-	try {
-		execSync("gh auth status", { stdio: "pipe" })
-		return true
+		const configContent = readFileSync(COPILOT_CONFIG_FILE, "utf-8")
+		const config: CopilotConfig = JSON.parse(configContent)
+
+		if (config.logged_in_users && config.logged_in_users.length > 0) {
+			const user = config.last_logged_in_user ?? config.logged_in_users[0]
+			return { authenticated: true, username: user.login }
+		}
+
+		return { authenticated: false }
 	} catch {
-		return false
+		return { authenticated: false }
 	}
 }
 
@@ -47,54 +60,37 @@ function isGhAuthenticated(): boolean {
  * Check the status of GitHub Copilot CLI
  */
 export function checkCopilotStatus(): CopilotStatus {
-	return {
-		ghInstalled: isGhInstalled(),
-		copilotInstalled: isCopilotExtensionInstalled(),
-		authenticated: isGhAuthenticated(),
-	}
+	const { installed, version } = isCopilotInstalled()
+	const { authenticated, username } = getCopilotAuth()
+
+	return { installed, authenticated, version, username }
 }
 
 /**
- * Install GitHub CLI
+ * Prompt the user to install GitHub Copilot CLI
  */
-async function installGhCli(): Promise<boolean> {
-	logger.step("GitHub CLI is not installed. Please install it first:")
-	logger.info("  macOS: brew install gh")
-	logger.info("  Windows: winget install --id GitHub.cli")
-	logger.info("  Linux: See https://github.com/cli/cli#installation")
+async function promptInstallCopilot(): Promise<boolean> {
+	logger.step("GitHub Copilot CLI is not installed. Please install it first:")
+	logger.info("  macOS: brew install gh-copilot")
+	logger.info("  npm:   npm install -g @githubnext/github-copilot-cli")
+	logger.info("  See:   https://docs.github.com/en/copilot/how-tos/copilot-cli")
 	logger.blank()
 	logger.info("After installation, please run 'agent-watch init' again.")
 	return false
 }
 
 /**
- * Install GitHub Copilot CLI extension
+ * Authenticate with GitHub Copilot CLI
  */
-async function installCopilotExtension(): Promise<boolean> {
+async function authenticateCopilot(): Promise<boolean> {
 	try {
-		logger.step("Installing GitHub Copilot CLI extension...")
-		execSync("gh extension install github/gh-copilot", { stdio: "inherit" })
-		logger.success("GitHub Copilot CLI extension installed successfully!")
-		return true
-	} catch (error) {
-		logger.error("Failed to install GitHub Copilot CLI extension")
-		logger.error(error instanceof Error ? error.message : String(error))
-		return false
-	}
-}
-
-/**
- * Authenticate with GitHub CLI
- */
-async function authenticateGh(): Promise<boolean> {
-	try {
-		logger.step("Authenticating with GitHub CLI...")
+		logger.step("Authenticating with GitHub Copilot CLI...")
 		logger.info("Follow the prompts to authenticate:")
-		execSync("gh auth login", { stdio: "inherit" })
-		logger.success("GitHub CLI authenticated successfully!")
+		execSync("copilot login", { stdio: "inherit" })
+		logger.success("GitHub Copilot CLI authenticated successfully!")
 		return true
 	} catch (error) {
-		logger.error("Failed to authenticate with GitHub CLI")
+		logger.error("Failed to authenticate with GitHub Copilot CLI")
 		logger.error(error instanceof Error ? error.message : String(error))
 		return false
 	}
@@ -108,39 +104,28 @@ export async function setupGithubCopilotCli(): Promise<boolean> {
 
 	const status = checkCopilotStatus()
 
-	// Check GitHub CLI installation
-	if (!status.ghInstalled) {
-		return await installGhCli()
+	// Check Copilot CLI installation
+	if (!status.installed) {
+		return await promptInstallCopilot()
 	}
 
-	logger.success("GitHub CLI is installed")
+	logger.success(`GitHub Copilot CLI is installed (v${status.version ?? "unknown"})`)
 
 	// Check authentication
 	if (!status.authenticated) {
-		logger.warn("GitHub CLI is not authenticated")
-		const authSuccess = await authenticateGh()
+		logger.warn("GitHub Copilot CLI is not authenticated")
+		const authSuccess = await authenticateCopilot()
 		if (!authSuccess) {
 			return false
 		}
 	} else {
-		logger.success("GitHub CLI is authenticated")
-	}
-
-	// Check Copilot extension
-	if (!status.copilotInstalled) {
-		logger.warn("GitHub Copilot CLI extension is not installed")
-		const installSuccess = await installCopilotExtension()
-		if (!installSuccess) {
-			return false
-		}
-	} else {
-		logger.success("GitHub Copilot CLI extension is installed")
+		logger.success(`GitHub Copilot CLI is authenticated as ${status.username}`)
 	}
 
 	// Final verification
 	logger.blank()
 	logger.success("GitHub Copilot CLI is ready to use!")
-	logger.info("You can now use 'gh copilot' commands")
+	logger.info("You can now use 'copilot' commands")
 	logger.blank()
 
 	return true
@@ -151,5 +136,5 @@ export async function setupGithubCopilotCli(): Promise<boolean> {
  */
 export function verifyCopilotSetup(): boolean {
 	const status = checkCopilotStatus()
-	return status.ghInstalled && status.copilotInstalled && status.authenticated
+	return status.installed && status.authenticated
 }
