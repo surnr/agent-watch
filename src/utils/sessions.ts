@@ -185,18 +185,14 @@ export function processNewSessions(projectRoot: string): string | null {
 		return null
 	}
 
-	logger.step(`Found ${unprocessed.length} new Copilot chat session(s) to process`)
-
 	const allConversations: SessionConversation[] = []
 
 	for (const session of unprocessed) {
-		logger.info(`  Processing session ${session.id.slice(0, 8)}... (branch: ${session.branch})`)
 		const conversations = exportSessionContent(session.id)
 		allConversations.push(...conversations)
 	}
 
 	if (allConversations.length === 0) {
-		logger.info("  No conversation content found in sessions")
 		// Still mark as processed to avoid re-checking empty sessions
 		const processedIds = getProcessedSessionIds(projectRoot)
 		saveProcessedSessionIds(projectRoot, [...processedIds, ...unprocessed.map((s) => s.id)])
@@ -210,7 +206,7 @@ export function processNewSessions(projectRoot: string): string | null {
 	const processedIds = getProcessedSessionIds(projectRoot)
 	saveProcessedSessionIds(projectRoot, [...processedIds, ...unprocessed.map((s) => s.id)])
 
-	logger.success(`  Extracted ${allConversations.length} conversation(s) from ${unprocessed.length} session(s)`)
+	logger.success(`Processed ${unprocessed.length} chat session(s)`)
 
 	return context
 }
