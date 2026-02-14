@@ -52,28 +52,39 @@ function getModifiedFiles(): string[] {
 }
 
 /**
- * Use Copilot CLI to analyze context and extract patterns/rules
+ * Use Copilot CLI to intelligently update agent file content
  */
-function analyzeContextWithCopilot(
+function updateAgentFileWithCopilot(
 	projectRoot: string,
 	context: string,
-	agentFilePath: string
+	agentFilePath: string,
+	currentContent: string
 ): string | null {
 	try {
-		const prompt = `You are analyzing a recent code change and chat sessions to update ${agentFilePath}.
+		const prompt = `You are maintaining ${agentFilePath}, a living document of patterns, conventions, and code rules.
 
-This file contains patterns, conventions, and code rules for the project. Your job is to:
-1. Analyze the recent changes and conversations
-2. Extract any new patterns, conventions, or rules that emerge
-3. Identify mistakes to avoid or best practices being followed
-4. Output ONLY new insights to add to the file (not raw code or diffs)
+Your task:
+1. Read the CURRENT content of this file carefully
+2. Analyze the RECENT changes and conversations below
+3. Determine if there are new patterns, rules, or conventions to document
+4. If updates are needed, output the COMPLETE UPDATED file content
+5. If no meaningful updates needed, output exactly: NO_UPDATE
 
-If there are no meaningful patterns or rules to extract, output "NO_UPDATE".
+Guidelines:
+- Intelligently merge new insights into existing sections
+- Update or refine existing rules if patterns have evolved
+- Remove outdated information
+- Keep it concise - no code snippets unless absolutely necessary
+- Maintain the file's existing structure and tone
+- Focus on patterns, conventions, and learnings - not changelogs
 
-Recent context:
+CURRENT FILE CONTENT:
+${currentContent}
+
+RECENT CONTEXT:
 ${context}
 
-Extract patterns, conventions, and rules (be concise and specific):`
+Output the complete updated file, or NO_UPDATE if nothing significant to add:`
 
 		const escapedPrompt = prompt.replaceAll('"', String.raw`\"`)
 		const command = `copilot -p "${escapedPrompt}" -s`
@@ -82,36 +93,17 @@ Extract patterns, conventions, and rules (be concise and specific):`
 			cwd: projectRoot,
 			encoding: "utf-8",
 			stdio: "pipe",
-			timeout: 60_000,
+			timeout: 90_000,
 		})
 
 		const output = result.trim()
-		return output === "NO_UPDATE" || output.length === 0 ? null : output
+		if (output === "NO_UPDATE" || output.length === 0 || output === currentContent) {
+			return null
+		}
+
+		return output
 	} catch {
 		return null
-	}
-}
-
-/**
- * Update an agent file intelligently with extracted insights
- */
-function updateAgentFile(
-	projectRoot: string,
-	filePath: string,
-	insights: string
-): void {
-	try {
-		const fullPath = join(projectRoot, filePath)
-		const currentContent = readFileSync(fullPath, "utf-8")
-		const timestamp = new Date().toISOString().split("T")[0] // Just date
-
-		// Add insights to a "Recent Learnings" or "Patterns" section
-		const update = `\n\n## Recent Updates (${timestamp})\n\n${insights}\n`
-
-		writeFileSync(fullPath, currentContent + update, "utf-8")
-		logger.success(`Updated ${filePath}`)
-	} catch {
-		logger.warn(`Failed to update ${filePath}`)
 	}
 }
 
@@ -177,9 +169,13 @@ export async function runCommand(): Promise<void> {
 	// Update each configured agent file
 	let updatedCount = 0
 	for (const filePath of config.agentFiles) {
-		const insights = analyzeContextWithCopilot(gitRoot, context, filePath)
-		if (insights) {
-			updateAgentFile(gitRoot, filePath, insights)
+		const fullPath = join(gitRoot, filePath)
+		const currentContent = readFileSync(fullPath, "utf-8")
+
+		const updatedContent = updateAgentFileWithCopilot(gitRoot, context, filePath, currentContent)
+		if (updatedContent) {
+			writeFileSync(fullPath, updatedContent, "utf-8")
+			logger.success(`Updated ${filePath}`)
 			updatedCount++
 		}
 	}
