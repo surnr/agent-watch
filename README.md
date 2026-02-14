@@ -1,68 +1,92 @@
 # agent-watch
 
-CLI tool for keeping AI agent configuration files in sync with your codebase.
+CLI tool that uses git hooks to keep your AI agent configuration files in sync with your codebase. It watches for commits or pushes, gathers context from git changes and chat sessions, and automatically updates your agent files.
 
-## What it does
-
-`agent-watch` automatically updates your AI agent configuration files (like `CLAUDE.md`, `copilot-instructions.md`, `AGENTS.md`, etc.) based on your git activity and chat sessions.
-
-## Supported agent files
-
-- `CLAUDE.md` (Claude Code)
-- `.github/copilot-instructions.md` (GitHub Copilot)
-- `copilot-instructions.md` (GitHub Copilot)
-- `AGENTS.md` / `agents.md` (Generic)
-- `.cursorrules` / `.cursor/rules` (Cursor)
-- `.windsurfrules` (Windsurf)
-- `.clinerules` (Cline)
-
-## Installation
+## Install
 
 ```bash
 npm install -g agent-watch
 ```
 
-Or use directly with npx:
+Or run directly:
 
 ```bash
 npx agent-watch init
 ```
 
-## Usage
-
-### Initialize
-
-Run the interactive setup in your project:
+## Quick start
 
 ```bash
+cd your-project
 agent-watch init
 ```
 
-This will:
+The `init` command walks you through an interactive setup:
 
-1. Detect existing agent configuration files in your project
-2. Ask which files you want agent-watch to manage
-3. Configure git context usage (commit messages and chat sessions)
-4. Set up git hooks (post-commit or pre-push)
-5. Choose which AI agent integrations to enable
+1. **Select agent files** - auto-detects existing files and lets you pick which ones to manage (space to toggle, enter to confirm)
+2. **Git context** - choose whether to use commit messages and chat sessions when updating files
+3. **Hook trigger** - pick when to run: after `git commit` or before `git push`
+4. **AI agents** - select which agent integrations to enable (GitHub Copilot CLI, more coming)
 
-Configuration is saved to `.agent-watch.json` in your project root.
+Your choices are saved to `.agent-watch.json` in the project root.
 
-## Development
+## Supported agent files
 
-```bash
-pnpm install
-pnpm run build
-pnpm run test
+| File | Agent |
+|------|-------|
+| `CLAUDE.md` | Claude Code |
+| `.github/copilot-instructions.md` | GitHub Copilot |
+| `copilot-instructions.md` | GitHub Copilot |
+| `AGENTS.md` / `agents.md` | Generic |
+| `.cursorrules` / `.cursor/rules` | Cursor |
+| `.windsurfrules` | Windsurf |
+| `.clinerules` | Cline |
+
+## How it works
+
+After running `agent-watch init`:
+
+- A git hook is installed (or instructions are provided if you use lefthook/husky)
+- On each commit or push (depending on your config), agent-watch gathers context from:
+  - Changed files in the commit
+  - Git commit messages
+  - Chat sessions from supported AI tools
+- It uses this context to update your selected agent configuration files
+
+## Configuration
+
+The `.agent-watch.json` config file:
+
+```json
+{
+  "version": 1,
+  "agentFiles": ["CLAUDE.md", ".github/copilot-instructions.md"],
+  "useGitContext": true,
+  "hookTrigger": "commit",
+  "agents": ["github-copilot-cli"]
+}
 ```
 
-### Scripts
+## Git hook integration
 
-- `pnpm run build` - Build the package
-- `pnpm run test` - Run the full test suite
-- `pnpm run test:unit` - Run unit tests
-- `pnpm run check` - Lint and format with Biome
-- `pnpm run check:fix` - Auto-fix lint and format issues
+agent-watch detects your existing hook manager:
+
+- **Lefthook** - prints the config to add to `lefthook.yml`
+- **Husky** - prints the `npx husky add` command to run
+- **No hook manager** - installs directly to `.git/hooks/`
+
+The hook is idempotent and can be safely re-run.
+
+## Programmatic API
+
+You can also use agent-watch as a library:
+
+```ts
+import { loadConfig, detectAgentFiles, KNOWN_AGENT_FILES } from "agent-watch"
+
+const config = loadConfig("./my-project")
+const files = detectAgentFiles("./my-project")
+```
 
 ## License
 
