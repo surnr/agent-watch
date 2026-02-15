@@ -7,8 +7,19 @@ import { installGitHook } from "./hooks"
 
 describe("installGitHook", () => {
 	let tempDir: string
+	let originalHooksPath: string | null = null
 
 	beforeEach(() => {
+		// Save current hooks path config before tests
+		try {
+			originalHooksPath = execSync("git config --local core.hookspath", {
+				encoding: "utf-8",
+				stdio: "pipe",
+			}).trim()
+		} catch {
+			originalHooksPath = null
+		}
+
 		tempDir = mkdtempSync(join(tmpdir(), "agent-watch-test-"))
 		// Initialize a git repo so .git/hooks exists
 		execSync("git init", { cwd: tempDir, stdio: "pipe" })
@@ -16,6 +27,17 @@ describe("installGitHook", () => {
 
 	afterEach(() => {
 		rmSync(tempDir, { recursive: true, force: true })
+
+		// Restore original hooks path config
+		try {
+			if (originalHooksPath) {
+				execSync(`git config --local core.hookspath "${originalHooksPath}"`, { stdio: "pipe" })
+			} else {
+				execSync("git config --unset core.hookspath", { stdio: "pipe" })
+			}
+		} catch {
+			// Ignore cleanup errors
+		}
 	})
 
 	it("should create post-commit hook for commit trigger", () => {
