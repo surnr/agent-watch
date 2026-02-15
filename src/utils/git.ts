@@ -46,3 +46,50 @@ export function hasLefthook(projectRoot: string): boolean {
 export function hasHusky(projectRoot: string): boolean {
 	return existsSync(join(projectRoot, ".husky"))
 }
+
+/**
+ * Get the path to lefthook.yml or lefthook.yaml.
+ * Returns null if not found.
+ */
+export function getLefthookPath(projectRoot: string): string | null {
+	const ymlPath = join(projectRoot, "lefthook.yml")
+	const yamlPath = join(projectRoot, "lefthook.yaml")
+
+	if (existsSync(ymlPath)) {
+		return ymlPath
+	}
+	if (existsSync(yamlPath)) {
+		return yamlPath
+	}
+	return null
+}
+
+/**
+ * Check if lefthook CLI is available.
+ */
+export function isLefthookAvailable(): boolean {
+	try {
+		execSync("npx lefthook version", {
+			stdio: "pipe",
+			timeout: 5000,
+		})
+		return true
+	} catch {
+		return false
+	}
+}
+
+/**
+ * Check if husky CLI is available.
+ */
+export function isHuskyAvailable(): boolean {
+	try {
+		execSync("npx husky --version", {
+			stdio: "pipe",
+			timeout: 5000,
+		})
+		return true
+	} catch {
+		return false
+	}
+}

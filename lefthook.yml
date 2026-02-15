@@ -6,7 +6,6 @@ pre-commit:
       stage_fixed: true
     test:
       run: pnpm run test
-
 post-commit:
   commands:
     agent-watch:

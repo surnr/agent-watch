@@ -138,7 +138,8 @@ export async function initCommand(): Promise<void> {
 	const hookResult = installGitHook(projectRoot, gitRoot, hookTrigger)
 
 	if (hookResult.success) {
-		if (hookResult.method === "lefthook" || hookResult.method === "husky") {
+		// Show warning only for manual instructions, success otherwise
+		if (hookResult.message.includes("Please run:") || hookResult.message.includes("please add manually")) {
 			logger.warn(hookResult.message)
 		} else {
 			logger.success(hookResult.message)
