@@ -88,6 +88,11 @@ src/
 ├── commands/
 │   ├── init.ts                     # Interactive setup wizard
 │   └── run.ts                      # Main execution flow (extract → summarize → update)
+├── prompts/
+│   ├── index.ts                    # Prompt builder exports
+│   ├── session-analysis.ts         # Session → patterns prompt template
+│   ├── agent-file-update.ts        # Agent file update prompt template
+│   └── agent-file-creation.ts      # Agent file creation prompt template
 └── utils/
     ├── copilot.ts                  # Copilot CLI interaction (--yolo mode)
     ├── git.ts                      # Git operations (get diff, changed files)
@@ -297,7 +302,13 @@ Session processing logic is in `src/utils/sessions/`:
 - `summarize.ts` - Copilot summarization
 - `extractors/*.ts` - Tool-specific extraction
 
-Each extractor is independent; changes to one don't affect others.
+Prompt templates are centralized in `src/prompts/`:
+- `session-analysis.ts` - Templates & builder for analyzing sessions
+- `agent-file-update.ts` - Templates & builder for updating agent files
+- `agent-file-creation.ts` - Builder for creating new agent files
+- `index.ts` - Centralized exports
+
+Each extractor is independent; changes to one don't affect others. Prompts are templated with replaceable sections (e.g., `{{CONTEXT}}`, `{{AGENT_FILES}}`) for flexibility.
 
 ### Updating Git Hook Integration
 
@@ -321,6 +332,11 @@ Git hook logic in `src/hooks.ts`:
 ### Copilot CLI Integration
 
 - Uses `copilot --yolo` mode (runs command without auth UI)
+- Prompts extracted to `src/prompts/` module with reusable templates
+- Three prompt types:
+  - **Session Analysis:** Extract patterns from chat session human/AI messages
+  - **Agent File Update:** Update agent files with session insights + git context
+  - **Agent File Creation:** Generate new agent files from codebase analysis
 - Sends entire prompt + file paths in one request
 - Atomically updates all agent files together
 - Requires Copilot CLI already installed and authenticated
