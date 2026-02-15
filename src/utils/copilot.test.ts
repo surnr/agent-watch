@@ -87,11 +87,17 @@ describe("copilot utils", () => {
 	it("should create missing agent files using Copilot CLI", async () => {
 		const { createMissingAgentFiles } = await import("./copilot")
 		const selectedFiles = [".github/copilot-instructions.md", "AGENTS.md"]
-		const detectedFiles = selectedFiles.map((path) => ({
-			pattern: KNOWN_AGENT_FILES.find((file) => file.path === path)!,
-			exists: false,
-			absolutePath: join(projectRoot, path),
-		}))
+		const detectedFiles = selectedFiles.map((path) => {
+			const pattern = KNOWN_AGENT_FILES.find((file) => file.path === path)
+			if (!pattern) {
+				throw new Error(`Pattern not found for path: ${path}`)
+			}
+			return {
+				pattern,
+				exists: false,
+				absolutePath: join(projectRoot, path),
+			}
+		})
 
 		createMissingAgentFiles(projectRoot, selectedFiles, detectedFiles)
 
