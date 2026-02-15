@@ -21,9 +21,9 @@ describe("config", () => {
 
 		it("should return null for invalid JSON", () => {
 			const { mkdirSync } = require("node:fs") as typeof import("node:fs")
-		const agentWatchDir = join(tempDir, ".agent-watch")
-		mkdirSync(agentWatchDir, { recursive: true })
-		const configPath = join(agentWatchDir, "config.json")
+			const agentWatchDir = join(tempDir, ".agent-watch")
+			mkdirSync(agentWatchDir, { recursive: true })
+			const configPath = join(agentWatchDir, "config.json")
 			const { writeFileSync } = require("node:fs") as typeof import("node:fs")
 			writeFileSync(configPath, "not valid json", "utf-8")
 			expect(loadConfig(tempDir)).toBeNull()

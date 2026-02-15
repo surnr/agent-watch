@@ -60,17 +60,17 @@ describe("sessions", () => {
 		writeFileSync(
 			join(sessionA, "workspace.yaml"),
 			["id: a", `cwd: ${projectRoot}`, `git_root: ${projectRoot}`, "updated_at: 2024-01-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 		writeFileSync(
 			join(sessionB, "workspace.yaml"),
 			["id: b", `cwd: ${projectRoot}`, `git_root: ${projectRoot}`, "updated_at: 2024-02-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 		writeFileSync(
 			join(sessionC, "workspace.yaml"),
 			["id: c", "cwd: /other", "git_root: /other", "updated_at: 2024-03-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 
 		const { getCopilotSessions } = await import("./sessions")
@@ -104,12 +104,12 @@ describe("sessions", () => {
 		writeFileSync(
 			join(sessionA, "workspace.yaml"),
 			["id: a", `cwd: ${projectRoot}`, `git_root: ${projectRoot}`, "updated_at: 2024-01-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 		writeFileSync(
 			join(sessionB, "workspace.yaml"),
 			["id: b", `cwd: ${projectRoot}`, `git_root: ${projectRoot}`, "updated_at: 2024-02-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 
 		const { getUnprocessedSessions, saveProcessedSessionIds } = await import("./sessions")
@@ -158,7 +158,7 @@ describe("sessions", () => {
 		writeFileSync(
 			join(sessionA, "workspace.yaml"),
 			["id: a", `cwd: ${projectRoot}`, `git_root: ${projectRoot}`, "updated_at: 2024-01-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 
 		const { processNewSessions } = await import("./sessions")
@@ -168,7 +168,7 @@ describe("sessions", () => {
 		expect(result).toBeNull()
 
 		const raw = readFileSync(join(projectRoot, ".agent-watch", "sessions.json"), "utf-8")
-		expect(raw).toContain("\"a\"")
+		expect(raw).toContain('"a"')
 	})
 
 	it("should return conversation context and persist processed sessions", async () => {
@@ -180,7 +180,7 @@ describe("sessions", () => {
 		writeFileSync(
 			join(sessionA, "workspace.yaml"),
 			["id: a", `cwd: ${projectRoot}`, `git_root: ${projectRoot}`, "updated_at: 2024-01-01T00:00:00Z"].join("\n"),
-			"utf-8",
+			"utf-8"
 		)
 
 		const { processNewSessions } = await import("./sessions")
@@ -190,6 +190,6 @@ describe("sessions", () => {
 		expect(result).toBe("User: One\nAgent: Two")
 
 		const raw = readFileSync(join(projectRoot, ".agent-watch", "sessions.json"), "utf-8")
-		expect(raw).toContain("\"a\"")
+		expect(raw).toContain('"a"')
 	})
 })

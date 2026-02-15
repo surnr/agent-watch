@@ -143,7 +143,9 @@ export async function runCommand(): Promise<void> {
 				commitMessage ? `Commit: ${commitMessage}` : "",
 				`Files changed: ${modifiedFiles.join(", ")}`,
 				diffStats ? `Stats:\n${diffStats}` : "",
-			].filter(Boolean).join("\n")
+			]
+				.filter(Boolean)
+				.join("\n")
 
 			contextParts.push(fileContext)
 		}

@@ -22,7 +22,7 @@ export function addToGitignore(projectRoot: string, entries: string[]): void {
 
 	for (const entry of entries) {
 		// Check if entry already exists (exact match or pattern match)
-		const exists = lines.some(line => {
+		const exists = lines.some((line) => {
 			const trimmed = line.trim()
 			return trimmed === entry || trimmed === `/${entry}`
 		})

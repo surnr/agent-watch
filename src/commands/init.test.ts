@@ -124,7 +124,11 @@ describe("initCommand", () => {
 		findGitRootMock.mockReturnValueOnce("/repo")
 		loadConfigMock.mockReturnValueOnce(null)
 		detectAgentFilesMock.mockReturnValueOnce([
-			{ pattern: { path: "AGENTS.md", label: "AGENTS.md", agent: "Generic" }, exists: true, absolutePath: "/repo/AGENTS.md" },
+			{
+				pattern: { path: "AGENTS.md", label: "AGENTS.md", agent: "Generic" },
+				exists: true,
+				absolutePath: "/repo/AGENTS.md",
+			},
 		])
 
 		checkboxMock

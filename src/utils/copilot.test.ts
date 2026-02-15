@@ -49,7 +49,7 @@ describe("copilot utils", () => {
 		writeFileSync(
 			join(configDir, "config.json"),
 			JSON.stringify({ logged_in_users: [{ host: "github.com", login: "octo" }] }),
-			"utf-8",
+			"utf-8"
 		)
 
 		execSyncMock.mockReturnValueOnce("copilot 1.2.3")
@@ -75,9 +75,7 @@ describe("copilot utils", () => {
 	})
 
 	it("should authenticate when Copilot CLI is installed but not logged in", async () => {
-		execSyncMock
-			.mockReturnValueOnce("copilot 1.2.3")
-			.mockReturnValueOnce("")
+		execSyncMock.mockReturnValueOnce("copilot 1.2.3").mockReturnValueOnce("")
 
 		const { setupGithubCopilotCli } = await import("./copilot")
 		const result = await setupGithubCopilotCli()
@@ -103,12 +101,12 @@ describe("copilot utils", () => {
 			timeout: 120_000,
 		})
 		expect(execSyncMock).toHaveBeenCalledWith(
-			expect.stringContaining("copilot -p \"Create a AGENTS.md file for this project."),
+			expect.stringContaining('copilot -p "Create a AGENTS.md file for this project.'),
 			{
 				cwd: projectRoot,
 				stdio: "pipe",
 				timeout: 120_000,
-			},
+			}
 		)
 	})
 })
