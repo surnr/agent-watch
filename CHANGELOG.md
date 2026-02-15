@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+### Minor Changes
+
+- Enhance session extraction architecture with tool-specific extractors for Claude Code, Copilot Chat, and Copilot CLI. Refactor session handling code for better maintainability and add comprehensive documentation.
+
 ## 1.0.1
 
 ### Patch Changes
