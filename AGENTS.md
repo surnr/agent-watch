@@ -77,6 +77,14 @@ agent-watch/
 - Pre-commit hooks run linting and type checking
 - Hooks are project-managed, not installed via agent-watch itself
 
+### Session Extraction Architecture
+- **Extractor Pattern**: Tool-specific extractors implement `SessionExtractor` interface
+  - Each extractor handles data locations specific to that tool (Claude Code: `~/.claude/projects/`, Copilot Chat: VS Code extensions, Copilot CLI: `~/.copilot/`)
+  - Extractors provide `getSessions()` (get metadata) and `extractContent()` (get human messages + AI response)
+- **Tool Registry**: All extractors registered in `EXTRACTORS` map in `src/utils/sessions/index.ts`
+- **Session Tracking**: Processed sessions tracked per tool in `.agent-watch/sessions.json` to prevent re-processing
+- **Summarization**: Raw session content (human messages + AI response) sent to Copilot CLI for summarization
+
 ## Key Concepts
 
 ### Supported Agent Files
@@ -87,6 +95,11 @@ The tool manages configuration files for various AI coding assistants:
 - `.cursor/rules` - Cursor
 - `.windsurfrules` - Windsurf
 - `.clinerules` - Cline
+
+### Supported AI Tools for Session Extraction
+- `claude-code` - Claude Code (sessions in `~/.claude/projects/`)
+- `github-copilot-cli` - GitHub Copilot CLI (sessions in `~/.copilot/sessions/`)
+- `github-copilot-chat` - GitHub Copilot Chat in VS Code (sessions in VS Code extensions storage)
 
 ### Configuration
 Project config stored in `.agent-watch.json`:
@@ -123,6 +136,14 @@ Three modes supported:
 3. Test detection with `detectAgentFiles()`
 4. Update documentation if needed
 
+### Adding Session Extraction for New AI Tool
+1. Create extractor in `src/utils/sessions/extractors/<tool-name>.ts`
+2. Implement `SessionExtractor` interface with `getSessions()` and `extractContent()`
+3. Register in `EXTRACTORS` map in `src/utils/sessions/index.ts`
+4. Add tool ID to `toolId` union type in `src/utils/sessions/types.ts`
+5. Add test coverage for session discovery and content extraction
+6. Document tool-specific session storage paths and format in comments
+
 ### Modifying CLI Commands
 - Commands in `src/commands/`
 - Register in `src/cli.ts`
@@ -144,6 +165,12 @@ Three modes supported:
   - Lock files (package-lock.json, pnpm-lock.yaml, yarn.lock)
   - CI/CD workflows (.github/workflows/*)
   - This prevents unnecessary processing and keeps the hook fast
+- **Session Extraction**: 
+  - Each AI tool stores sessions in different locations; extractors abstract these differences
+  - Sessions must contain both human messages and AI response to be summarized
+  - Empty sessions are skipped to avoid noise in agent files
+  - Processed sessions tracked per tool to prevent re-summarizing same sessions
+  - Use `SessionExtractor` interface for tool-specific session discovery and extraction
 
 ## Resources
 
