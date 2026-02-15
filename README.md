@@ -1,4 +1,4 @@
-# agent-watch
+# Agent Watch
 
 CLI tool that uses git hooks to keep your AI agent configuration files in sync with your codebase. It watches for commits or pushes, gathers context from git changes and chat sessions, and automatically updates your agent files.
 
@@ -32,15 +32,15 @@ Your choices are saved to `.agent-watch.json` in the project root.
 
 ## Supported agent files
 
-| File | Agent |
-|------|-------|
-| `CLAUDE.md` | Claude Code |
+| File                              | Agent          |
+| --------------------------------- | -------------- |
+| `CLAUDE.md`                       | Claude Code    |
 | `.github/copilot-instructions.md` | GitHub Copilot |
-| `copilot-instructions.md` | GitHub Copilot |
-| `AGENTS.md` / `agents.md` | Generic |
-| `.cursorrules` / `.cursor/rules` | Cursor |
-| `.windsurfrules` | Windsurf |
-| `.clinerules` | Cline |
+| `copilot-instructions.md`         | GitHub Copilot |
+| `AGENTS.md` / `agents.md`         | Generic        |
+| `.cursorrules` / `.cursor/rules`  | Cursor         |
+| `.windsurfrules`                  | Windsurf       |
+| `.clinerules`                     | Cline          |
 
 ## How it works
 
