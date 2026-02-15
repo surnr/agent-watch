@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { loadConfig } from "../config.js"
 import { IGNORED_FILE_PATTERNS } from "../constants.js"
+import { logContext, logCopilotPrompt, logCopilotResponse, setDebugMode } from "../utils/debug.js"
 import { findGitRoot } from "../utils/git.js"
 import { logger } from "../utils/logger.js"
 import { processNewSessions } from "../utils/sessions.js"
@@ -128,6 +129,9 @@ ${context}
 
 Output the complete updated file, or NO_UPDATE if nothing significant to add:`
 
+		// Log the prompt if debug mode is enabled
+		logCopilotPrompt(projectRoot, agentFilePath, prompt)
+
 		const escapedPrompt = prompt.replaceAll('"', String.raw`\"`)
 		const command = `copilot -p "${escapedPrompt}" -s`
 
@@ -139,6 +143,10 @@ Output the complete updated file, or NO_UPDATE if nothing significant to add:`
 		})
 
 		const output = result.trim()
+
+		// Log the response if debug mode is enabled
+		logCopilotResponse(projectRoot, agentFilePath, output)
+
 		if (output === "NO_UPDATE" || output.length === 0 || output === currentContent) {
 			return null
 		}
@@ -152,7 +160,14 @@ Output the complete updated file, or NO_UPDATE if nothing significant to add:`
 /**
  * Run command - update agent files with extracted patterns and learnings
  */
-export async function runCommand(): Promise<void> {
+export async function runCommand(debug = false): Promise<void> {
+	// Enable debug mode if requested
+	setDebugMode(debug)
+
+	if (debug) {
+		logger.info("Debug mode enabled - logs will be saved to .agent-watch/debug/")
+	}
+
 	const cwd = process.cwd()
 	const gitRoot = findGitRoot(cwd)
 
@@ -214,6 +229,9 @@ export async function runCommand(): Promise<void> {
 	}
 
 	const context = contextParts.join("\n\n")
+
+	// Log the context if debug mode is enabled
+	logContext(gitRoot, context)
 
 	logger.step("Analyzing context for patterns and rules...")
 

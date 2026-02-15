@@ -24,6 +24,7 @@ export const KNOWN_AGENT_FILES: AgentFilePattern[] = [
 export const AGENT_WATCH_DIR = ".agent-watch"
 export const CONFIG_FILE_NAME = "config.json"
 export const SESSIONS_STATE_FILE = "sessions.json"
+export const DEBUG_LOGS_DIR = "debug"
 
 export const SUPPORTED_HOOKS = ["commit", "push"] as const
 export type GitHookTrigger = (typeof SUPPORTED_HOOKS)[number]

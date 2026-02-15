@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { homedir } from "node:os"
 import { join } from "node:path"
 import { AGENT_WATCH_DIR, SESSIONS_STATE_FILE } from "../constants.js"
+import { logSessionExport } from "./debug.js"
 import { logger } from "./logger.js"
 
 export interface CopilotSession {
@@ -142,7 +143,7 @@ export function getUnprocessedSessions(projectRoot: string, limit = 5): CopilotS
  * Export session conversation content by resuming the session with Copilot CLI.
  * Asks Copilot to list all user queries and agent responses from the session.
  */
-export function exportSessionContent(sessionId: string): SessionConversation[] {
+export function exportSessionContent(sessionId: string, projectRoot?: string): SessionConversation[] {
 	try {
 		const output = execSync(
 			`copilot --resume ${sessionId} -p "List every user request and your response from this session. Format each pair on its own line exactly as: USER: <their message> | AGENT: <your response summary>" -s --allow-all`,
@@ -152,6 +153,12 @@ export function exportSessionContent(sessionId: string): SessionConversation[] {
 				timeout: 120_000,
 			}
 		)
+
+		// Log the raw session export if debug mode is enabled and projectRoot is provided
+		if (projectRoot) {
+			logSessionExport(projectRoot, sessionId, output)
+		}
+
 		return parseSessionOutput(output)
 	} catch (error) {
 		logger.warn(`Failed to export session ${sessionId}: ${error instanceof Error ? error.message : String(error)}`)
@@ -195,7 +202,7 @@ export function processNewSessions(projectRoot: string): string | null {
 	const allConversations: SessionConversation[] = []
 
 	for (const session of unprocessed) {
-		const conversations = exportSessionContent(session.id)
+		const conversations = exportSessionContent(session.id, projectRoot)
 		allConversations.push(...conversations)
 	}
 

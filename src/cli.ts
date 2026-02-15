@@ -22,8 +22,9 @@ program
 program
 	.command("run")
 	.description("Update agent files with recent changes and chat sessions")
-	.action(async () => {
-		await runCommand()
+	.option("--debug", "Enable debug mode to save all content to .agent-watch/debug/")
+	.action(async (options: { debug?: boolean }) => {
+		await runCommand(options.debug ?? false)
 	})
 
 program.parse()
