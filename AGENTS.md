@@ -138,23 +138,6 @@ Three modes supported:
 - **Idempotency**: Hook installation is idempotent (safe to rerun)
 - **No Breaking Changes**: Use changesets for version management
 
-## Testing Your Changes
-
-```bash
-# 1. Build the CLI
-pnpm run build
-
-# 2. Link locally (from project root)
-npm link
-
-# 3. Test in another project
-cd /path/to/test-project
-agent-watch init
-
-# 4. Unlink when done
-npm unlink -g agent-watch
-```
-
 ## Resources
 
 - [Commander.js Docs](https://github.com/tj/commander.js)
