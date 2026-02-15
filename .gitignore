@@ -141,3 +141,4 @@ dist
 
 # agent-watch
 .agent-watch
+--version/
