@@ -68,6 +68,9 @@ agent-watch/
 - Vitest for unit testing
 - No tests should fail when making changes
 - Run `pnpm test` before committing
+- **Test Isolation**: When tests modify git configuration or global state, always save and restore original values
+  - Example: Save `core.hookspath` before modifying, restore in `afterEach` to prevent parent repo pollution
+  - Prevents side effects like unwanted directories (e.g., `--version/_`)
 
 ### Git Hooks
 - Lefthook configured in `lefthook.yml`
