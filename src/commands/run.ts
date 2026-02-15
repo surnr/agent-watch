@@ -151,8 +151,7 @@ export async function runCommand(debug = false): Promise<void> {
 	}
 
 	// 2. Process sessions and get summaries from all enabled tools
-	const summaries =
-		config.includeChatSession && config.agents.length > 0 ? processAllSessions(gitRoot, config.agents) : []
+	const summaries = config.agents.length > 0 ? processAllSessions(gitRoot, config.agents) : []
 
 	// Skip if no context
 	if (!gitContext && summaries.length === 0) {
