@@ -1,0 +1,5 @@
+
+post-commit:
+  commands:
+    agent-watch:
+      run: npx agent-watch run
