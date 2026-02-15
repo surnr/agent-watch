@@ -4,11 +4,21 @@ CLI tool that uses git hooks to keep your AI agent configuration files in sync w
 
 ## Install
 
+**Global installation** (recommended for CLI usage):
+
 ```bash
 npm install -g agent-watch
 ```
 
-Or run directly:
+**As a dev dependency** (for team consistency):
+
+```bash
+npm install -D agent-watch
+# or
+pnpm add -D agent-watch
+```
+
+**Or run directly without installation:**
 
 ```bash
 npx agent-watch init
