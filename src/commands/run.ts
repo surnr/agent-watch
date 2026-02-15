@@ -2,6 +2,7 @@ import { execSync } from "node:child_process"
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { loadConfig } from "../config.js"
+import { IGNORED_FILE_PATTERNS } from "../constants.js"
 import { findGitRoot } from "../utils/git.js"
 import { logger } from "../utils/logger.js"
 import { processNewSessions } from "../utils/sessions.js"
@@ -49,6 +50,47 @@ function getModifiedFiles(): string[] {
 	} catch {
 		return []
 	}
+}
+
+/**
+ * Check if a file path should be ignored (doesn't trigger agent-watch analysis)
+ */
+function shouldIgnoreFile(filePath: string): boolean {
+	const normalizedPath = filePath.replace(/\\/g, "/")
+
+	for (const pattern of IGNORED_FILE_PATTERNS) {
+		const normalizedPattern = pattern.replace(/\\/g, "/")
+
+		// Exact match
+		if (normalizedPath === normalizedPattern) {
+			return true
+		}
+
+		// Directory match (e.g., ".github/workflows" matches ".github/workflows/test.yml")
+		if (normalizedPath.startsWith(`${normalizedPattern}/`)) {
+			return true
+		}
+
+		// Filename match anywhere in path (e.g., "README.md" matches "docs/README.md")
+		const fileName = normalizedPath.split("/").pop()
+		if (fileName === normalizedPattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+/**
+ * Check if all modified files should be ignored
+ */
+function shouldSkipAnalysis(modifiedFiles: string[]): boolean {
+	if (modifiedFiles.length === 0) {
+		return true
+	}
+
+	// If ALL files are ignored, skip analysis
+	return modifiedFiles.every(shouldIgnoreFile)
 }
 
 /**
@@ -135,6 +177,13 @@ export async function runCommand(): Promise<void> {
 	// Collect file changes context (summary, not full diff)
 	if (config.watchFileChanges) {
 		const modifiedFiles = getModifiedFiles()
+
+		// Skip analysis if only non-relevant files were changed
+		if (shouldSkipAnalysis(modifiedFiles)) {
+			logger.info("Skipping analysis - only config/documentation files changed")
+			return
+		}
+
 		const commitMessage = getCommitMessage()
 		const diffStats = getGitDiffStats()
 

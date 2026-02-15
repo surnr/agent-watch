@@ -53,6 +53,8 @@ After running `agent-watch init`:
   - Chat sessions from supported AI tools
 - It uses this context to update your selected agent configuration files
 
+**Smart filtering**: agent-watch automatically skips running when only documentation or config files are modified (like README.md, .gitignore, lock files, etc.), keeping your workflow fast.
+
 ## Configuration
 
 The `.agent-watch.json` config file:

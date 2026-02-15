@@ -137,6 +137,13 @@ Three modes supported:
 - **Git Context**: Tool reads git history, so valid git repo required
 - **Idempotency**: Hook installation is idempotent (safe to rerun)
 - **No Breaking Changes**: Use changesets for version management
+- **Smart File Filtering**: Agent-watch automatically skips running when only non-relevant files are modified:
+  - Agent instruction files themselves (AGENTS.md, CLAUDE.md, etc.)
+  - Documentation (README.md, CHANGELOG.md, LICENSE)
+  - Config files (.gitignore, .prettierrc, tsconfig.json, etc.)
+  - Lock files (package-lock.json, pnpm-lock.yaml, yarn.lock)
+  - CI/CD workflows (.github/workflows/*)
+  - This prevents unnecessary processing and keeps the hook fast
 
 ## Resources
 
