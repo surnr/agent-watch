@@ -1,7 +1,7 @@
 {
 	"name": "agent-watch",
 	"version": "1.0.1",
-	"description": "CLI tool for keeping AI agent configuration files in sync with your codebase",
+	"description": "Automatically extract patterns from AI chat sessions (Claude Code, Copilot Chat, Copilot CLI) and update agent configuration files via git hooks",
 	"type": "module",
 	"bin": {
 		"agent-watch": "./dist/cli.js"

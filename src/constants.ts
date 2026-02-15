@@ -29,7 +29,11 @@ export const DEBUG_LOGS_DIR = "debug"
 export const SUPPORTED_HOOKS = ["commit", "push"] as const
 export type GitHookTrigger = (typeof SUPPORTED_HOOKS)[number]
 
-export const SUPPORTED_AI_AGENTS = [{ value: "github-copilot-cli", name: "GitHub Copilot CLI" }] as const
+export const SUPPORTED_AI_AGENTS = [
+	{ value: "github-copilot-cli", name: "GitHub Copilot CLI" },
+	{ value: "claude-code", name: "Claude Code" },
+	{ value: "github-copilot-chat", name: "GitHub Copilot Chat (VS Code)" },
+] as const
 
 // Files/patterns that should NOT trigger agent-watch to run
 // These are files that don't represent meaningful code changes

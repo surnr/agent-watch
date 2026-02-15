@@ -9,9 +9,11 @@ export {
 	type GitHookTrigger,
 } from "./constants.js"
 export {
-	getCopilotSessions,
-	getUnprocessedSessions,
-	processNewSessions,
-	type CopilotSession,
-	type SessionConversation,
-} from "./utils/sessions.js"
+	processAllSessions,
+	getProcessedSessionIds,
+	markSessionsAsProcessed,
+	clearProcessedSessions,
+	type Session,
+	type SessionContent,
+	type SessionExtractor,
+} from "./utils/sessions/index.js"

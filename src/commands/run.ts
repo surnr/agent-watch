@@ -1,12 +1,11 @@
 import { execSync } from "node:child_process"
-import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { loadConfig } from "../config.js"
 import { IGNORED_FILE_PATTERNS } from "../constants.js"
 import { logContext, logCopilotPrompt, logCopilotResponse, setDebugMode } from "../utils/debug.js"
 import { findGitRoot } from "../utils/git.js"
 import { logger } from "../utils/logger.js"
-import { processNewSessions } from "../utils/sessions.js"
+import { processAllSessions } from "../utils/sessions/index.js"
 
 /**
  * Get git commit message
@@ -54,29 +53,19 @@ function getModifiedFiles(): string[] {
 }
 
 /**
- * Check if a file path should be ignored (doesn't trigger agent-watch analysis)
+ * Check if a file path should be ignored
  */
 function shouldIgnoreFile(filePath: string): boolean {
-	const normalizedPath = filePath.replace(/\\/g, "/")
+	const normalizedPath = filePath.replaceAll("\\", "/")
 
 	for (const pattern of IGNORED_FILE_PATTERNS) {
-		const normalizedPattern = pattern.replace(/\\/g, "/")
+		const normalizedPattern = pattern.replaceAll("\\", "/")
 
-		// Exact match
-		if (normalizedPath === normalizedPattern) {
-			return true
-		}
+		if (normalizedPath === normalizedPattern) return true
+		if (normalizedPath.startsWith(`${normalizedPattern}/`)) return true
 
-		// Directory match (e.g., ".github/workflows" matches ".github/workflows/test.yml")
-		if (normalizedPath.startsWith(`${normalizedPattern}/`)) {
-			return true
-		}
-
-		// Filename match anywhere in path (e.g., "README.md" matches "docs/README.md")
 		const fileName = normalizedPath.split("/").pop()
-		if (fileName === normalizedPattern) {
-			return true
-		}
+		if (fileName === normalizedPattern) return true
 	}
 
 	return false
@@ -86,82 +75,43 @@ function shouldIgnoreFile(filePath: string): boolean {
  * Check if all modified files should be ignored
  */
 function shouldSkipAnalysis(modifiedFiles: string[]): boolean {
-	if (modifiedFiles.length === 0) {
-		return true
-	}
-
-	// If ALL files are ignored, skip analysis
+	if (modifiedFiles.length === 0) return true
 	return modifiedFiles.every(shouldIgnoreFile)
 }
 
 /**
- * Use Copilot CLI to intelligently update agent file content
+ * Format git context as a readable string
  */
-function updateAgentFileWithCopilot(
-	projectRoot: string,
-	context: string,
-	agentFilePath: string,
-	currentContent: string
-): string | null {
-	try {
-		const prompt = `You are maintaining ${agentFilePath}, a living document of patterns, conventions, and code rules.
+function formatGitContext(commitMessage: string, modifiedFiles: string[], diffStats: string): string {
+	const parts: string[] = []
 
-Your task:
-1. Read the CURRENT content of this file carefully
-2. Analyze the RECENT changes and conversations below
-3. Determine if there are new patterns, rules, or conventions to document
-4. If updates are needed, output the COMPLETE UPDATED file content
-5. If no meaningful updates needed, output exactly: NO_UPDATE
-
-Guidelines:
-- Intelligently merge new insights into existing sections
-- Update or refine existing rules if patterns have evolved
-- Remove outdated information
-- Keep it concise - no code snippets unless absolutely necessary
-- Maintain the file's existing structure and tone
-- Focus on patterns, conventions, and learnings - not changelogs
-
-CURRENT FILE CONTENT:
-${currentContent}
-
-RECENT CONTEXT:
-${context}
-
-Output the complete updated file, or NO_UPDATE if nothing significant to add:`
-
-		// Log the prompt if debug mode is enabled
-		logCopilotPrompt(projectRoot, agentFilePath, prompt)
-
-		const escapedPrompt = prompt.replaceAll('"', String.raw`\"`)
-		const command = `copilot -p "${escapedPrompt}" -s`
-
-		const result = execSync(command, {
-			cwd: projectRoot,
-			encoding: "utf-8",
-			stdio: "pipe",
-			timeout: 90_000,
-		})
-
-		const output = result.trim()
-
-		// Log the response if debug mode is enabled
-		logCopilotResponse(projectRoot, agentFilePath, output)
-
-		if (output === "NO_UPDATE" || output.length === 0 || output === currentContent) {
-			return null
-		}
-
-		return output
-	} catch {
-		return null
+	if (commitMessage) {
+		parts.push(`Commit message: ${commitMessage}`)
 	}
+
+	if (modifiedFiles.length > 0) {
+		parts.push(`Files changed: ${modifiedFiles.join(", ")}`)
+	}
+
+	if (diffStats) {
+		parts.push(`Diff stats:\n${diffStats}`)
+	}
+
+	return parts.join("\n\n")
+}
+
+/**
+ * Escape prompt for safe shell execution
+ */
+function escapeShellPrompt(prompt: string): string {
+	return prompt.replaceAll('"', String.raw`\"`)
 }
 
 /**
  * Run command - update agent files with extracted patterns and learnings
+ * New approach: Collect summaries from all tools, then use single yolo command
  */
 export async function runCommand(debug = false): Promise<void> {
-	// Enable debug mode if requested
 	setDebugMode(debug)
 
 	if (debug) {
@@ -187,71 +137,59 @@ export async function runCommand(debug = false): Promise<void> {
 		return
 	}
 
-	const contextParts: string[] = []
-
-	// Collect file changes context (summary, not full diff)
+	// 1. Collect git context
+	let gitContext = ""
 	if (config.watchFileChanges) {
 		const modifiedFiles = getModifiedFiles()
 
-		// Skip analysis if only non-relevant files were changed
 		if (shouldSkipAnalysis(modifiedFiles)) {
 			logger.info("Skipping analysis - only config/documentation files changed")
 			return
 		}
 
-		const commitMessage = getCommitMessage()
-		const diffStats = getGitDiffStats()
-
-		if (modifiedFiles.length > 0) {
-			const fileContext = [
-				commitMessage ? `Commit: ${commitMessage}` : "",
-				`Files changed: ${modifiedFiles.join(", ")}`,
-				diffStats ? `Stats:\n${diffStats}` : "",
-			]
-				.filter(Boolean)
-				.join("\n")
-
-			contextParts.push(fileContext)
-		}
+		gitContext = formatGitContext(getCommitMessage(), modifiedFiles, getGitDiffStats())
 	}
 
-	// Collect chat session context
-	if (config.includeChatSession) {
-		const sessionContext = processNewSessions(gitRoot)
-		if (sessionContext) {
-			contextParts.push(`Conversations:\n${sessionContext}`)
-		}
-	}
+	// 2. Process sessions and get summaries from all enabled tools
+	const summaries =
+		config.includeChatSession && config.agents.length > 0 ? processAllSessions(gitRoot, config.agents) : []
 
-	if (contextParts.length === 0) {
+	// Skip if no context
+	if (!gitContext && summaries.length === 0) {
 		logger.info("No new context to analyze")
 		return
 	}
 
-	const context = contextParts.join("\n\n")
+	// 3. Build single yolo prompt with all context
+	const agentFilePaths = config.agentFiles.map((f) => join(gitRoot, f))
 
-	// Log the context if debug mode is enabled
-	logContext(gitRoot, context)
+	const prompt = `Based on the following context, intelligently update the agent configuration files listed below. Only update if there are meaningful new patterns, conventions, or rules to document.
 
-	logger.step("Analyzing context for patterns and rules...")
+${gitContext ? `## Git Changes\n${gitContext}\n\n` : ""}${summaries.length > 0 ? `## Pattern Summaries from Chat Sessions\n${summaries.join("\n\n")}\n\n` : ""}## Agent Files to Update
+${agentFilePaths.map((p) => `- ${p}`).join("\n")}
 
-	// Update each configured agent file
-	let updatedCount = 0
-	for (const filePath of config.agentFiles) {
-		const fullPath = join(gitRoot, filePath)
-		const currentContent = readFileSync(fullPath, "utf-8")
+Read each file, analyze its current content, and update with new insights. Merge patterns intelligently, maintain existing structure, remove outdated info. Focus on patterns and conventions, not changelogs.`
 
-		const updatedContent = updateAgentFileWithCopilot(gitRoot, context, filePath, currentContent)
-		if (updatedContent) {
-			writeFileSync(fullPath, updatedContent, "utf-8")
-			logger.success(`Updated ${filePath}`)
-			updatedCount++
-		}
-	}
+	// Log context and prompt if debug mode enabled
+	logContext(gitRoot, `${gitContext}\n\nSummaries:\n${summaries.join("\n\n")}`)
+	logCopilotPrompt(gitRoot, "yolo-update", prompt)
 
-	if (updatedCount > 0) {
-		logger.success(`Updated ${updatedCount} agent file(s) with new insights`)
-	} else {
-		logger.info("No significant patterns found to update")
+	// 4. Execute single yolo command to update all files atomically
+	logger.step("Updating agent files via Copilot --yolo...")
+
+	try {
+		const output = execSync(`copilot -p "${escapeShellPrompt(prompt)}" --yolo`, {
+			cwd: gitRoot,
+			encoding: "utf-8",
+			stdio: "pipe",
+			timeout: 180_000, // 3 minutes
+		})
+
+		logCopilotResponse(gitRoot, "yolo-update", output)
+		logger.success("Agent files updated successfully")
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		logger.error(`Failed to update files: ${errorMessage}`)
+		process.exit(1)
 	}
 }
