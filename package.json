@@ -1,6 +1,6 @@
 {
 	"name": "agent-watch",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "CLI tool for keeping AI agent configuration files in sync with your codebase",
 	"type": "module",
 	"bin": {
