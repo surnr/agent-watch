@@ -193,7 +193,6 @@ After running `agent-watch init`, your config is stored in `.agent-watch/config.
   "version": 1,
   "agentFiles": ["CLAUDE.md", ".github/copilot-instructions.md"],
   "watchFileChanges": true,
-  "includeChatSession": true,
   "hookTrigger": "commit",
   "agents": ["claude-code", "github-copilot-chat", "github-copilot-cli"]
 }
@@ -201,13 +200,12 @@ After running `agent-watch init`, your config is stored in `.agent-watch/config.
 
 ### Configuration Options
 
-| Option               | Type                 | Description                             |
-| -------------------- | -------------------- | --------------------------------------- |
-| `agentFiles`         | `string[]`           | Which agent files to update             |
-| `watchFileChanges`   | `boolean`            | Include git commit context              |
-| `includeChatSession` | `boolean`            | Extract and summarize chat sessions     |
-| `hookTrigger`        | `"commit" \| "push"` | When to run agent-watch                 |
-| `agents`             | `string[]`           | Which AI tools to extract sessions from |
+| Option             | Type                 | Description                             |
+| ------------------ | -------------------- | --------------------------------------- |
+| `agentFiles`       | `string[]`           | Which agent files to update             |
+| `watchFileChanges` | `boolean`            | Include git commit context              |
+| `hookTrigger`      | `"commit" \| "push"` | When to run agent-watch                 |
+| `agents`           | `string[]`           | Which AI tools to extract sessions from |
 
 ---
 

@@ -65,7 +65,6 @@ function getFakeConfig(overrides: Partial<AgentWatchConfig> = {}): AgentWatchCon
 		version: 1,
 		agentFiles: [],
 		watchFileChanges: true,
-		includeChatSession: true,
 		hookTrigger: "commit",
 		agents: [],
 		...overrides,
@@ -133,8 +132,7 @@ describe("initCommand", () => {
 
 		checkboxMock
 			.mockResolvedValueOnce(["AGENTS.md"])
-			.mockResolvedValueOnce(["watchFileChanges"])
-			.mockResolvedValueOnce([SUPPORTED_AI_AGENTS[0]?.value])
+			.mockResolvedValueOnce(["watchFileChanges", SUPPORTED_AI_AGENTS[0]?.value])
 
 		selectMock.mockResolvedValueOnce("push")
 
@@ -144,7 +142,6 @@ describe("initCommand", () => {
 		const config = getFakeConfig({
 			agentFiles: ["AGENTS.md"],
 			watchFileChanges: true,
-			includeChatSession: false,
 			hookTrigger: "push",
 			agents: [SUPPORTED_AI_AGENTS[0]?.value ?? "github-copilot-cli"],
 		})

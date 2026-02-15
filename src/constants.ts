@@ -31,8 +31,8 @@ export type GitHookTrigger = (typeof SUPPORTED_HOOKS)[number]
 
 export const SUPPORTED_AI_AGENTS = [
 	{ value: "github-copilot-cli", name: "GitHub Copilot CLI" },
+	{ value: "github-copilot-chat", name: "GitHub Copilot Chat" },
 	{ value: "claude-code", name: "Claude Code" },
-	{ value: "github-copilot-chat", name: "GitHub Copilot Chat (VS Code)" },
 ] as const
 
 // Files/patterns that should NOT trigger agent-watch to run

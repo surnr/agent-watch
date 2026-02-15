@@ -81,16 +81,16 @@ export async function initCommand(): Promise<void> {
 				value: "watchFileChanges",
 				checked: true,
 			},
-			{
-				name: "  Chat sessions (Copilot conversation context)",
-				value: "includeChatSession",
+			...SUPPORTED_AI_AGENTS.map((agent) => ({
+				name: `  ${agent.name} sessions`,
+				value: agent.value,
 				checked: true,
-			},
+			})),
 		],
 	})
 
 	const watchFileChanges = contextOptions.includes("watchFileChanges")
-	const includeChatSession = contextOptions.includes("includeChatSession")
+	const selectedAgents = contextOptions.filter((option) => SUPPORTED_AI_AGENTS.some((agent) => agent.value === option))
 
 	// 6. Ask about hook trigger
 	const hookTrigger = await select<GitHookTrigger>({
@@ -102,17 +102,7 @@ export async function initCommand(): Promise<void> {
 		default: "commit" as const,
 	})
 
-	// 7. Ask which AI agents to configure
-	const selectedAgents = await checkbox({
-		message: "Which AI agents would you like to configure?",
-		choices: SUPPORTED_AI_AGENTS.map((agent) => ({
-			name: `  ${agent.name}`,
-			value: agent.value,
-			checked: true,
-		})),
-	})
-
-	// 8. Setup GitHub Copilot CLI if selected
+	// 7. Setup GitHub Copilot CLI if selected
 	if (selectedAgents.includes("github-copilot-cli")) {
 		const setupSuccess = await setupGithubCopilotCli()
 		if (!setupSuccess) {
@@ -124,7 +114,6 @@ export async function initCommand(): Promise<void> {
 	const config = createDefaultConfig({
 		agentFiles: selectedFiles,
 		watchFileChanges,
-		includeChatSession,
 		hookTrigger,
 		agents: selectedAgents,
 	})
