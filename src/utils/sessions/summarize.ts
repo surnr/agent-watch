@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process"
+import { buildSessionAnalysisPrompt } from "../../prompts/index.js"
 import { logger } from "../logger.js"
 import type { SessionContent } from "./types.js"
 import { escapePrompt } from "./utils.js"
@@ -14,20 +15,7 @@ export function summarizeSession(content: SessionContent, toolId: string): strin
 		return null
 	}
 
-	const prompt = `Analyze this chat session and extract key patterns, conventions, and rules that should be documented.
-
-Human messages:
-${content.humanMessages.map((msg, i) => `${i + 1}. ${msg}`).join("\n\n")}
-
-AI's final response:
-${content.aiResponse}
-
-Provide a concise summary of:
-- Code patterns or conventions discussed
-- Rules or guidelines established
-- Important decisions or learnings
-
-Be specific and actionable. If no significant patterns found, respond with exactly: "No patterns."`
+	const prompt = buildSessionAnalysisPrompt(content.humanMessages, content.aiResponse)
 
 	try {
 		const output = execSync(`copilot -p "${escapePrompt(prompt)}" -s`, {

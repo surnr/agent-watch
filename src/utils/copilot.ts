@@ -4,6 +4,7 @@ import { homedir } from "node:os"
 import { join } from "node:path"
 import { KNOWN_AGENT_FILES } from "../constants.js"
 import type { AgentFileInfo } from "../detect.js"
+import { buildAgentFileCreationPrompt } from "../prompts/index.js"
 import { logger } from "./logger.js"
 
 interface CopilotStatus {
@@ -163,14 +164,11 @@ export function createMissingAgentFiles(
 					timeout: 120_000,
 				})
 			} else {
-				execSync(
-					`copilot -p "Create a ${filePath} file for this project. Analyze the codebase to understand the project structure, tech stack, and conventions. Write the file directly." --allow-all-tools -s`,
-					{
-						cwd: projectRoot,
-						stdio: "pipe",
-						timeout: 120_000,
-					}
-				)
+				execSync(`copilot -p "${buildAgentFileCreationPrompt(filePath)}" --allow-all-tools -s`, {
+					cwd: projectRoot,
+					stdio: "pipe",
+					timeout: 120_000,
+				})
 			}
 			logger.success(`Created ${label}`)
 		} catch {

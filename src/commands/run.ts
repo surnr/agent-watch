@@ -2,6 +2,7 @@ import { execSync } from "node:child_process"
 import { join } from "node:path"
 import { loadConfig } from "../config.js"
 import { IGNORED_FILE_PATTERNS } from "../constants.js"
+import { buildAgentFileUpdatePrompt } from "../prompts/index.js"
 import { logContext, logCopilotPrompt, logCopilotResponse, setDebugMode } from "../utils/debug.js"
 import { findGitRoot } from "../utils/git.js"
 import { logger } from "../utils/logger.js"
@@ -162,12 +163,7 @@ export async function runCommand(debug = false): Promise<void> {
 	// 3. Build single yolo prompt with all context
 	const agentFilePaths = config.agentFiles.map((f) => join(gitRoot, f))
 
-	const prompt = `Based on the following context, intelligently update the agent configuration files listed below. Only update if there are meaningful new patterns, conventions, or rules to document.
-
-${gitContext ? `## Git Changes\n${gitContext}\n\n` : ""}${summaries.length > 0 ? `## Pattern Summaries from Chat Sessions\n${summaries.join("\n\n")}\n\n` : ""}## Agent Files to Update
-${agentFilePaths.map((p) => `- ${p}`).join("\n")}
-
-Read each file, analyze its current content, and update with new insights. Merge patterns intelligently, maintain existing structure, remove outdated info. Focus on patterns and conventions, not changelogs.`
+	const prompt = buildAgentFileUpdatePrompt(gitContext, summaries, agentFilePaths)
 
 	// Log context and prompt if debug mode enabled
 	logContext(gitRoot, `${gitContext}\n\nSummaries:\n${summaries.join("\n\n")}`)
