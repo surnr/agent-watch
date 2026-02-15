@@ -36,7 +36,6 @@ Your choices are saved to `.agent-watch.json` in the project root.
 | --------------------------------- | -------------- |
 | `CLAUDE.md`                       | Claude Code    |
 | `.github/copilot-instructions.md` | GitHub Copilot |
-| `copilot-instructions.md`         | GitHub Copilot |
 | `AGENTS.md` / `agents.md`         | Generic        |
 | `.cursorrules` / `.cursor/rules`  | Cursor         |
 | `.windsurfrules`                  | Windsurf       |
@@ -79,16 +78,20 @@ agent-watch detects your existing hook manager:
 
 The hook is idempotent and can be safely re-run.
 
-## Programmatic API
+## Documentation
 
-You can also use agent-watch as a library:
+- **[CHANGELOG](CHANGELOG.md)** - Version history and release notes
 
-```ts
-import { loadConfig, detectAgentFiles, KNOWN_AGENT_FILES } from "agent-watch"
+## Contributing
 
-const config = loadConfig("./my-project")
-const files = detectAgentFiles("./my-project")
-```
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Run `pnpm test:ci` to ensure everything passes
+6. Submit a pull request
 
 ## License
 
