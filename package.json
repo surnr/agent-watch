@@ -1,6 +1,6 @@
 {
 	"name": "agent-watch",
-	"version": "1.1.0",
+	"version": "1.1.2",
 	"description": "Automatically extract patterns from AI chat sessions (Claude Code, Copilot Chat, Copilot CLI) and update agent configuration files via git hooks",
 	"type": "module",
 	"bin": {

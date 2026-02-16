@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.2
+
+### Patch Changes
+
+- Centralize prompt templates and improve CLI question navigation
+
+## 1.1.1
+
+### Patch Changes
+
+- Centralize prompt templates and improve CLI question navigation
+
 ## 1.1.0
 
 ### Minor Changes
